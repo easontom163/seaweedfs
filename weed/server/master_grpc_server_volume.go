@@ -63,6 +63,8 @@ func (ms *MasterServer) ProcessGrowRequest() {
 					continue
 				}
 				writable, crowded := vl.GetWritableVolumeCount()
+				copy1Count := topology.VolumeGrowStrategy.Copy1Count
+				glog.V(0).Infoln("start grow process, copy1Count", copy1Count)
 				glog.V(0).Infoln("start grow process, writable crowded", writable, crowded)
 				mustGrow := int(lastGrowCount) - writable
 				glog.V(0).Infoln("start grow process, mustGrow lastGrowCount", mustGrow, lastGrowCount)
