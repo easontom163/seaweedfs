@@ -301,7 +301,7 @@ func (vl *VolumeLayout) PickForWrite(count uint64, option *VolumeGrowOption) (vi
 	defer vl.accessLock.RUnlock()
 
 	lenWriters := len(vl.writables)
-	if uint32(lenWriters) <= uint32(VolumeGrowStrategy.Copy1Count) {
+	if uint32(lenWriters) <= 0 {
 		return 0, 0, nil, true, fmt.Errorf("%s", NoWritableVolumes)
 	}
 	if option.DataCenter == "" && option.Rack == "" && option.DataNode == "" {
