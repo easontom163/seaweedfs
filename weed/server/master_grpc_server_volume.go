@@ -93,7 +93,7 @@ func (ms *MasterServer) ProcessGrowRequest() {
 								copy1Count := topology.VolumeGrowStrategy.Copy1Count
 								lesswritableVolumeCount := int(copy1Count) - writable
 								if lesswritableVolumeCount > 0 {
-									vgr.WritableVolumeCount = lesswritableVolumeCount
+									vgr.WritableVolumeCount = uint32(lesswritableVolumeCount)
 								} else {
 									vgr.WritableVolumeCount = volumeGrowStepCount
 								}
