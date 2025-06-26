@@ -64,10 +64,7 @@ func (ms *MasterServer) ProcessGrowRequest() {
 				}
 				writable, crowded := vl.GetWritableVolumeCount()
 				copy1Count := topology.VolumeGrowStrategy.Copy1Count
-				glog.V(0).Infoln("start grow process, copy1Count", copy1Count)
-				glog.V(0).Infoln("start grow process, writable crowded", writable, crowded)
 				mustGrow := int(lastGrowCount) - writable
-				glog.V(0).Infoln("start grow process, mustGrow lastGrowCount", mustGrow, lastGrowCount)
 				vgr := vlc.ToVolumeGrowRequest()
 				stats.MasterVolumeLayoutWritable.WithLabelValues(vlc.Collection, vgr.DiskType, vgr.Replication, vgr.Ttl).Set(float64(writable))
 				stats.MasterVolumeLayoutCrowded.WithLabelValues(vlc.Collection, vgr.DiskType, vgr.Replication, vgr.Ttl).Set(float64(crowded))
@@ -94,7 +91,12 @@ func (ms *MasterServer) ProcessGrowRequest() {
 							if lastGrowCount > 0 {
 								vgr.WritableVolumeCount = uint32(math.Ceil(float64(lastGrowCount) / float64(len(dcs)*len(racks))))
 							} else {
-								vgr.WritableVolumeCount = volumeGrowStepCount
+								if int(copy1Count) > writable {
+									vgr.WritableVolumeCount = int(copy1Count) - writable
+								} else {
+									vgr.WritableVolumeCount = volumeGrowStepCount
+								}
+								
 							}
 
 							if _, err = ms.VolumeGrow(ctx, vgr); err != nil {
