@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	volumeGrowStepCount = 2
+	volumeGrowStepCount = 6
 )
 
 func (ms *MasterServer) DoAutomaticVolumeGrow(req *topology.VolumeGrowRequest) {
@@ -49,7 +49,7 @@ func (ms *MasterServer) ProcessGrowRequest() {
 			if firstRun {
 				firstRun = false
 			} else {
-				time.Sleep(5*time.Minute + time.Duration(30*rand.Float32())*time.Second)
+				time.Sleep(time.Duration(30*rand.Float32())*time.Second)
 			}
 			if !ms.Topo.IsLeader() {
 				continue
