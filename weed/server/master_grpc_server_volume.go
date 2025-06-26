@@ -59,26 +59,24 @@ func (ms *MasterServer) ProcessGrowRequest() {
 			for _, vlc := range ms.Topo.ListVolumeLayoutCollections() {
 				vl := vlc.VolumeLayout
 				lastGrowCount := vl.GetLastGrowCount()
-				glog.V(1).Infoln("start grow process, lastGrowCount ", lastGrowCount)
 				if vl.HasGrowRequest() {
 					continue
 				}
 				writable, crowded := vl.GetWritableVolumeCount()
-				glog.V(1).Infoln("start grow process, writable crowded", writable, crowded)
+				glog.V(0).Infoln("start grow process, writable crowded", writable, crowded)
 				mustGrow := int(lastGrowCount) - writable
-				glog.V(1).Infoln("start grow process, mustGrow ", mustGrow)
+				glog.V(0).Infoln("start grow process, mustGrow lastGrowCount", mustGrow, lastGrowCount)
 				vgr := vlc.ToVolumeGrowRequest()
 				stats.MasterVolumeLayoutWritable.WithLabelValues(vlc.Collection, vgr.DiskType, vgr.Replication, vgr.Ttl).Set(float64(writable))
 				stats.MasterVolumeLayoutCrowded.WithLabelValues(vlc.Collection, vgr.DiskType, vgr.Replication, vgr.Ttl).Set(float64(crowded))
 
 				switch {
 				case mustGrow > 0:
-					glog.V(1).Infoln("use mustGrow ", mustGrow)
+					glog.V(0).Infoln("use mustGrow ", mustGrow)
 					vgr.WritableVolumeCount = uint32(mustGrow)
 					_, err = ms.VolumeGrow(ctx, vgr)
 				case lastGrowCount > 0 && writable < int(lastGrowCount*2) && float64(crowded+volumeGrowStepCount) > float64(writable)*topology.VolumeGrowStrategy.Threshold:
-					glog.V(1).Infoln("use volumeGrowStepCount crowded+volumeGrowStepCount", float64(crowded+volumeGrowStepCount))
-					glog.V(1).Infoln("use volumeGrowStepCount writable", float64(writable)*topology.VolumeGrowStrategy.Threshold)
+					glog.V(0).Infoln("use volumeGrowStepCount crowded+volumeGrowStepCount", float64(crowded+volumeGrowStepCount), float64(writable)*topology.VolumeGrowStrategy.Threshold)
 					vgr.WritableVolumeCount = volumeGrowStepCount
 					_, err = ms.VolumeGrow(ctx, vgr)
 				}
