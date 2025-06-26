@@ -92,7 +92,7 @@ func (ms *MasterServer) ProcessGrowRequest() {
 								vgr.WritableVolumeCount = uint32(math.Ceil(float64(lastGrowCount) / float64(len(dcs)*len(racks))))
 							} else {
 								if int(copy1Count) > writable {
-									vgr.WritableVolumeCount = int(copy1Count) - writable
+									vgr.WritableVolumeCount = uint32(copy1Count) - writable
 								} else {
 									vgr.WritableVolumeCount = volumeGrowStepCount
 								}
