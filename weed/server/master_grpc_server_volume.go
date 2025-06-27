@@ -76,7 +76,8 @@ func (ms *MasterServer) ProcessGrowRequest() {
 				case lastGrowCount > 0 && writable < int(lastGrowCount*2) && float64(crowded+volumeGrowStepCount) > float64(writable)*topology.VolumeGrowStrategy.Threshold:
 					vgr.WritableVolumeCount = volumeGrowStepCount
 					_, err = ms.VolumeGrow(ctx, vgr)
-				case lesswritableVolumeCount > 0:
+				case lesswritableVolumeCount > 0 && float64(copy1Count)*(1.0 - topology.VolumeGrowStrategy.Threshold) > float64(writable):
+					glog.V(0).Infoln("start grow ", vgr.DataCenter, vgr.Rack)
 					vgr.WritableVolumeCount = uint32(lesswritableVolumeCount)
 					_, err = ms.VolumeGrow(ctx, vgr)
 				}
