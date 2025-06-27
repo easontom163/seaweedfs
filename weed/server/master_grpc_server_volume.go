@@ -67,15 +67,17 @@ func (ms *MasterServer) ProcessGrowRequest() {
 				vgr := vlc.ToVolumeGrowRequest()
 				stats.MasterVolumeLayoutWritable.WithLabelValues(vlc.Collection, vgr.DiskType, vgr.Replication, vgr.Ttl).Set(float64(writable))
 				stats.MasterVolumeLayoutCrowded.WithLabelValues(vlc.Collection, vgr.DiskType, vgr.Replication, vgr.Ttl).Set(float64(crowded))
-
+				copy1Count := topology.VolumeGrowStrategy.Copy1Count
+				lesswritableVolumeCount := int(copy1Count) - writable
 				switch {
 				case mustGrow > 0:
-					glog.V(0).Infoln("use mustGrow ", mustGrow)
 					vgr.WritableVolumeCount = uint32(mustGrow)
 					_, err = ms.VolumeGrow(ctx, vgr)
 				case lastGrowCount > 0 && writable < int(lastGrowCount*2) && float64(crowded+volumeGrowStepCount) > float64(writable)*topology.VolumeGrowStrategy.Threshold:
-					glog.V(0).Infoln("use volumeGrowStepCount crowded+volumeGrowStepCount", float64(crowded+volumeGrowStepCount), float64(writable)*topology.VolumeGrowStrategy.Threshold)
 					vgr.WritableVolumeCount = volumeGrowStepCount
+					_, err = ms.VolumeGrow(ctx, vgr)
+				case lesswritableVolumeCount > 0:
+					vgr.WritableVolumeCount = uint32(lesswritableVolumeCount)
 					_, err = ms.VolumeGrow(ctx, vgr)
 				}
 				if err != nil {
@@ -90,8 +92,6 @@ func (ms *MasterServer) ProcessGrowRequest() {
 							if lastGrowCount > 0 {
 								vgr.WritableVolumeCount = uint32(math.Ceil(float64(lastGrowCount) / float64(len(dcs)*len(racks))))
 							} else {
-								copy1Count := topology.VolumeGrowStrategy.Copy1Count
-								lesswritableVolumeCount := int(copy1Count) - writable
 								if lesswritableVolumeCount > 0 {
 									vgr.WritableVolumeCount = uint32(lesswritableVolumeCount)
 								} else {
